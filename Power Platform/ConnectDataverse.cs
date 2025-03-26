@@ -10,25 +10,7 @@ using System.ComponentModel.Design;
 namespace Power_Platform
 {
     // setup the connection string
-    public class ConnectionConfig : IconnectionString
-    {
-        public const string AuthType = "ClientSecret";
-        public const string Url = "https://org0509c4b1.crm.dynamics.com";
-        public const string ClientId = "b83faec7-0f3a-48bc-910a-c3cf5060e4a3";
-        public const string ClientSecret = "96.8Q~eatJb-7oR2Mn6TNs5afXCvPdfyT1ip4aCg";
-        public const string TenantId = "f53c472b-9ce5-4d34-9277-0883b6507fff";
-        public const string RedirectUri = "http://localhost";
-
-        public string ConnectionString()
-        {
-            return $"AuthType={AuthType}; " +
-                   $"Url={Url}; " +
-                   $"ClientId={ClientId}; " +
-                   $"ClientSecret={ClientSecret}; " +
-                   $"TenantId={TenantId}; " +
-                   $"RedirectUri={RedirectUri};";
-        }
-    }
+  
 
 
     //create a connection to dataverse using the ServiceClient class
