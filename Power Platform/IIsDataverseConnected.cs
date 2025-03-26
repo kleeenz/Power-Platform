@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using Microsoft.PowerPlatform.Dataverse.Client;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,22 +15,22 @@ namespace Power_Platform
     }
     public interface IIsDataverseConnected 
     {
-        bool IsConnected();
+        ServiceClient IsConnected();
     }
 
     public interface IConnectTable
     {
-        EntityCollection connectToTableInstance();
+        Entity connectToTableInstance();
     }
 
     public interface ICheckNoRowsAreEmpty
     {
-        bool IsEmptyRows();
+        bool IsEmptyRows(double inputParameter);
     }
     
     public interface IPrediction
     {
-       
+       string MakePrediction();
     }
 
 }

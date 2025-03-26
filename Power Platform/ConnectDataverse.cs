@@ -5,10 +5,12 @@ using Microsoft.Rest;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk;
 using System.Configuration;
+using System.ComponentModel.Design;
 
 namespace Power_Platform
 {
-    public class ConnectionConfig: IconnectionString
+    // setup the connection string
+    public class ConnectionConfig : IconnectionString
     {
         public const string AuthType = "ClientSecret";
         public const string Url = "https://org0509c4b1.crm.dynamics.com";
@@ -29,118 +31,169 @@ namespace Power_Platform
     }
 
 
-
+    //create a connection to dataverse using the ServiceClient class
     public class ConnectDataverse : IIsDataverseConnected
     {
 
         private readonly IconnectionString _connectionString;
 
-        public ConnectDataverse()
+        public ConnectDataverse(IconnectionString connectionString)
         {
-            _connectionString = new ConnectionConfig();
+            _connectionString = connectionString;
         }
-        public bool IsConnected()
+        public ServiceClient IsConnected()
         {
             ServiceClient serviceClient = new ServiceClient(_connectionString.ConnectionString());
 
-            return serviceClient.IsReady;
+            return serviceClient;
         }
     }
 
 
+    //connect to the table instance if the connection to dataverse is successful
     public class ConnectTable : IConnectTable
     {
-        private readonly IconnectionString _connectionString;
+
         private readonly IIsDataverseConnected _isDataverseConnected;
 
-        public ConnectTable(IconnectionString connectionString, IIsDataverseConnected isDataverseConnected)
+        public ConnectTable(IIsDataverseConnected isDataverseConnected)
         {
-            _connectionString = connectionString;
+
             _isDataverseConnected = isDataverseConnected;
         }
-        public EntityCollection connectToTableInstance()
+        public Entity connectToTableInstance()
         {
 
-            ServiceClient serviceClient = new ServiceClient(_connectionString.ConnectionString());
+            var checkDataverseConnected = _isDataverseConnected.IsConnected();
 
-            QueryExpression query = null;
+            Entity entity1 = new Entity();
 
-            if (_isDataverseConnected.IsConnected())
+            if (checkDataverseConnected.IsReady)
             {
                 Console.WriteLine("Connection successful");
 
-                Entity entity = new Entity("cr382_environmentalsensordata");
+                entity1 = new Entity("cr382_environmentalsensordata");
+
 
             }
-            return serviceClient.RetrieveMultiple(query);
+            return entity1;
         }
     }
 
-    public class checkNoRowsAreEmpty: ICheckNoRowsAreEmpty
+
+    // the class to check for empty values
+    public class checkNoRowsAreEmpty : ICheckNoRowsAreEmpty
     {
-        private readonly IConnectTable _connectTable;
-
-        public checkNoRowsAreEmpty(IConnectTable connectTable)
+        public bool IsEmptyRows(double inputParameters)
         {
-            _connectTable = connectTable;
+            return inputParameters != null;
+
         }
+    }
 
-        public bool IsEmptyRows()
+
+    // accept input, check that input is not null and make prediction based on defined condition. Save input to dataverse
+        public class PredictLiftCondition : IPrediction
         {
-            var fields = _connectTable.connectToTableInstance();
-            var boolValue = false;
-            foreach (Entity entity in fields.Entities)
+            private readonly IConnectTable _connectTable;
+            private readonly ICheckNoRowsAreEmpty _checkNoRowsAreEmpty;
+            private readonly IIsDataverseConnected _isDataverse;
+
+            public PredictLiftCondition(IConnectTable connectTable, ICheckNoRowsAreEmpty checkNoRowsAreEmpty, IIsDataverseConnected isDataverse)
             {
-                if (entity["cr382_humiditylevel"] != null || entity["cr382_pressurereading"] != null ||
-                    entity["cr382_rpmvalue"] != null || entity["cr382_temperaturereading"] != null || entity["cr382_vibrationlevel"] != null)
-                {
-                    boolValue = true;
-                }
+                _connectTable = connectTable;
+                _checkNoRowsAreEmpty = checkNoRowsAreEmpty;
+                _isDataverse = isDataverse;
             }
-            return boolValue;
-        }
 
 
-        public class PredictLiftCondition: IPrediction
-    {
-        private readonly IConnectTable _connectTable;
-        private readonly ICheckNoRowsAreEmpty _checkNoRowsAreEmpty;
+            public string MakePrediction()
+            {
+                var StoreData = _connectTable.connectToTableInstance();
 
-            public PredictLiftCondition(IConnectTable connectTable, ICheckNoRowsAreEmpty checkNoRowsAreEmpty)
-        {
-            _connectTable = connectTable;
-            _checkNoRowsAreEmpty = checkNoRowsAreEmpty;
-         }
-        public string BrokenCondition()
-        {
-            var results = _connectTable.connectToTableInstance();
+                Console.WriteLine("Enter the value of Pressure");
+                string Pressure = Console.ReadLine();
+                bool pressureConvertToInt = double.TryParse(Pressure, out double pressureValue);
+                bool PValue = _checkNoRowsAreEmpty.IsEmptyRows(pressureValue);
 
-                if (_checkNoRowsAreEmpty.IsEmptyRows())
+                Console.WriteLine("Enter the value of Humidity");
+                string Humidity = Console.ReadLine();
+                bool humidityToInt = double.TryParse(Humidity, out double humidityValue);
+                bool HValue = _checkNoRowsAreEmpty.IsEmptyRows(humidityValue);
+
+                Console.WriteLine("Enter the value of RPM");
+                string RPM = Console.ReadLine();
+                bool rpmToInt = double.TryParse(RPM, out double rpmValue);
+                bool RValue = _checkNoRowsAreEmpty.IsEmptyRows(rpmValue);
+
+                Console.WriteLine("Enter the value of Vibration");
+                string Vibration = Console.ReadLine();
+                bool vibrationToInt = double.TryParse(Vibration, out double vibrationValue);
+                bool VValue = _checkNoRowsAreEmpty.IsEmptyRows(vibrationValue);
+
+                Console.WriteLine("Enter the value of Temperature");
+                string Temperature = Console.ReadLine();
+                bool temperatureToInt = double.TryParse(Temperature, out double temperatureValue);
+                bool TValue = _checkNoRowsAreEmpty.IsEmptyRows(temperatureValue);
+
+                string PredictedValue = "";
+                if (PValue && HValue && RValue && VValue && TValue)
                 {
-                    foreach (Entity entity in results.Entities)
+                    StoreData["cr382_humiditylevel"] = humidityValue;
+                    StoreData["cr382_pressurereading"] = pressureValue;
+                    StoreData["cr382_rpmvalue"] = rpmValue;
+                    StoreData["cr382_temperaturereading"] = temperatureValue;
+                    StoreData["cr382_vibrationlevel"] = vibrationValue;
+                    try
                     {
-                        if ((int)entity["cr382_temperaturereading"] > 0)
-                        {
-                            if (Convert.ToInt32(entity["cr382_temperaturereading"]) > 50)
-                            {
-                                return "Lift is broken";
-                            }
-                        }
+                        Guid recordId = _isDataverse.IsConnected().Create(StoreData);
                     }
-            }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+
+                    if (pressureValue > 80 || humidityValue > 80 || (rpmValue > 0 || rpmValue <= 20) || vibrationValue > 0 || temperatureValue > 0)
+                    {
+                        PredictedValue = "Broken condition";
+                    }
+                    else if ((pressureValue >= 70 && pressureValue <= 80) && (humidityValue >= 60 && humidityValue <= 80) && (rpmValue > 0 && rpmValue <= 20) && vibrationValue <= 0 && (temperatureValue >= 30 && temperatureValue <= 35))
+                    {
+                        PredictedValue = "Recovery condition";
+                    }
+
+                    else
+                    {
+                        PredictedValue = "Normal Condition";
+                    }
                 }
-            
+                else
+                {
+                    Console.WriteLine("One of the input is null or an invalid number, please enter an integer value");
+                    Console.ReadKey();
+                }
+
+                return PredictedValue;
+            }
         }
-        public string RecoveringCondition()
+
+
+
+    //controller class
+        public class ImplementClass
         {
-            return "Lift is recovering";
-        }
-        public string NormalCondition()
-        {
-            return "Lift is normal";
+            private readonly IPrediction prediction;
+
+            public ImplementClass(IPrediction _prediction)
+            {
+                this.prediction = _prediction;
+            }
+
+            public void callPredictionMethod()
+            {
+                Console.WriteLine(prediction.MakePrediction());
+            }
         }
     }
-    {
-        
-    }
-}
+
