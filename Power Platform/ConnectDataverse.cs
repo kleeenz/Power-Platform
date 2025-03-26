@@ -1,11 +1,6 @@
-﻿using System;
-using System.Runtime.Serialization;
-using Microsoft.PowerPlatform.Dataverse.Client;
-using Microsoft.Rest;
-using Microsoft.Xrm.Sdk.Query;
+﻿using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
-using System.Configuration;
-using System.ComponentModel.Design;
+
 
 namespace Power_Platform
 {

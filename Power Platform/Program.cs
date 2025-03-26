@@ -1,8 +1,4 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-
-using Power_Platform;
+﻿using Power_Platform;
 
 
 // main method that executes the controller class method.
