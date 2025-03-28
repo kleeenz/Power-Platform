@@ -175,19 +175,15 @@ namespace Power_Platform
 
     public class RetrieveData: IRetrieveData
     {
-        private readonly IConnectTable _connectTable;
         private readonly IIsDataverseConnected _isDataverseConnected;
 
-        public RetrieveData(IConnectTable connectTable, IIsDataverseConnected isDataverseConnected)
+        public RetrieveData(IIsDataverseConnected isDataverseConnected)
         {
-            _connectTable = connectTable;
             _isDataverseConnected = isDataverseConnected;
         }
 
         public void Retrieve()
         {
-            var allRows = _connectTable.connectToTableInstance();
-
             var dataConn = _isDataverseConnected.IsConnected();
 
             QueryExpression query = new QueryExpression("cr382_environmentalsensordata")
