@@ -1,5 +1,6 @@
 ﻿using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 
 
 namespace Power_Platform
@@ -8,10 +9,10 @@ namespace Power_Platform
     public class ConnectionConfig : IconnectionString
     {
         public const string AuthType = "ClientSecret";
-        public const string Url = "https://org********.crm.dynamics.com";
-        public const string ClientId = "***faec7-****-***-***-c3cf5060e***";
-        public const string ClientSecret = "***.8Q~eatJb-7o*****afXCvPdfyT1ip4a***";
-        public const string TenantId = "*******-9ce5-****-****-****b6507***";
+        public const string Url = "https://org**********.crm.dynamics.com";
+        public const string ClientId = "b83f******-*****-******-910a-c3cf50********";
+        public const string ClientSecret = "*****~eatJb-7oR2******************";
+        public const string TenantId = "**********-9ce5-******-9278**********";
         public const string RedirectUri = "http://localhost";
 
         public string ConnectionString()
@@ -68,7 +69,6 @@ namespace Power_Platform
                 Console.WriteLine("Connection successful");
 
                 entity1 = new Entity("cr382_environmentalsensordata");
-
 
             }
             return entity1;
@@ -173,21 +173,56 @@ namespace Power_Platform
             }
         }
 
+    public class RetrieveData: IRetrieveData
+    {
+        private readonly IConnectTable _connectTable;
+        private readonly IIsDataverseConnected _isDataverseConnected;
+
+        public RetrieveData(IConnectTable connectTable, IIsDataverseConnected isDataverseConnected)
+        {
+            _connectTable = connectTable;
+            _isDataverseConnected = isDataverseConnected;
+        }
+
+        public void Retrieve()
+        {
+            var allRows = _connectTable.connectToTableInstance();
+
+            var dataConn = _isDataverseConnected.IsConnected();
+
+            QueryExpression query = new QueryExpression("cr382_environmentalsensordata")
+            {
+                ColumnSet = new ColumnSet("cr382_humiditylevel", "cr382_pressurereading"),
+                TopCount = 10
+            };
+
+            EntityCollection results = dataConn.RetrieveMultiple(query);
+
+            foreach (Entity row in results.Entities)
+            {
+                Console.WriteLine($"Pressure: {row["cr382_pressurereading"]}   Humidity:  {row["cr382_humiditylevel"]}");
+            }
+        }
+    }
+
 
 
     //controller class
         public class ImplementClass
         {
             private readonly IPrediction prediction;
+        private readonly IRetrieveData _retrieveData;
 
-            public ImplementClass(IPrediction _prediction)
+            public ImplementClass(IPrediction _prediction, IRetrieveData retrieveData)
             {
                 this.prediction = _prediction;
+            _retrieveData = retrieveData;
             }
 
             public void callPredictionMethod()
             {
                 Console.WriteLine(prediction.MakePrediction());
+            _retrieveData.Retrieve();
             }
         }
     }

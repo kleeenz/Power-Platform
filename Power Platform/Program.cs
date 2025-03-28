@@ -11,8 +11,9 @@ public class program
         IConnectTable connectTable = new ConnectTable(dataverseConn);
         ICheckNoRowsAreEmpty checkRows = new checkNoRowsAreEmpty();
         IPrediction prediction = new PredictLiftCondition(connectTable, checkRows, dataverseConn);
+        IRetrieveData retrieveData = new RetrieveData(connectTable, dataverseConn);
 
-        ImplementClass imp = new ImplementClass(prediction);
+        ImplementClass imp = new ImplementClass(prediction, retrieveData);
 
         //call the Predict Method
         imp.callPredictionMethod();

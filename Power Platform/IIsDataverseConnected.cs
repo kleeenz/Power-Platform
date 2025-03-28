@@ -29,4 +29,9 @@ namespace Power_Platform
        string MakePrediction();
     }
 
+    public interface IRetrieveData
+    {
+        void Retrieve();
+    }
+
 }
